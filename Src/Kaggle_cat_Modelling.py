@@ -1,6 +1,14 @@
 from sklearn.model_selection import train_test_split
 import numpy as np
+import tensorflow as tf
 import os
+from keras import backend as K
+
+def auc(y_true, y_pred):
+    auc = tf.metrics.auc(y_true, y_pred)[1]
+    K.get_session().run(tf.local_variables_initializer())
+    return auc
+
 
 pro_numpy_dir = os.path.dirname("D:/LTK_AI/LTK_AI_Study/AI_Study/Kaggle_Cat/Numpy_Pro/")
 list_data = np.load(pro_numpy_dir+"/pro_train.npy")
@@ -53,26 +61,25 @@ model.add(Dense(1, activation='sigmoid'))
 # model.add(Dense(512, activation='relu'))
 # model.add(Dense(1, activation='sigmoid'))
 
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=[auc])
 
-# Dense 모델
-model.fit(X_train, Y_train, batch_size=5000, epochs=30)
+model.fit(X_train, Y_train, batch_size=5000, epochs=1500)
 
-# LSTM 모델
-# model.fit(X_train, Y_train, batch_size=10000, epochs=200)
-
-loss, acc = model.evaluate(X_test, Y_test, batch_size=500)
-print("acc: ", acc)
+loss, auc = model.evaluate(X_test, Y_test, batch_size=500)
+print("auc: ", auc)
 
 y_predict = model.predict(X_pred)
 print(y_predict)
 
-for predict in y_predict:
-    if predict > 0.3 and predict < 0.7:
-        predict = predict;
-    else:
-        predict = np.round(predict)
-print(y_predict)
+# for predict in y_predict:
+#     if predict > 0.3 and predict < 0.7:
+#         predict = predict;
+#     else:
+#         predict = np.round(predict)
+# print(y_predict)
+
+# y_predict = np.round(y_predict)
+# print(y_predict)
 
 import pandas as pd
 
@@ -83,4 +90,4 @@ result_dir = os.path.dirname("D:/LTK_AI/LTK_AI_Study/AI_Study/Kaggle_Cat/Result/
 
 submit_fie = pd.read_csv(submit_dir+"/sample_submission.csv", index_col='id')
 submit_fie['target'] = y_predict
-submit_fie.to_csv(result_dir+'/Predict_Result_4.csv')
+submit_fie.to_csv(result_dir+'/Predict_New_Result_5.csv')
